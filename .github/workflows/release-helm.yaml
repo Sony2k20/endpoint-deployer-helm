@@ -1,7 +1,12 @@
-name: Release Helm Chart endpoint deployer
+name: Release Helm Chart
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Chart version to release (e.g., 1.2.3)"
+        required: true
+        type: string
   push:
     branches: ["master"]
 
@@ -30,12 +35,30 @@ jobs:
           CURRENT_VERSION=$(grep '^version:' ./charts/endpoint-deployer/Chart.yaml | awk '{print $2}')
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Determine next version
+      - name: Determine version based on trigger
         id: version
-        uses: mathieudutour/github-tag-action@v6.2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_prefix: ""
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            # Use the manually specified version
+            MANUAL_VERSION="${{ github.event.inputs.version }}"
+            echo "Manual version: $MANUAL_VERSION"
+            echo "new_tag=$MANUAL_VERSION" >> $GITHUB_OUTPUT
+            echo "version_type=manual" >> $GITHUB_OUTPUT
+          else
+            # Use automatic versioning for push to master
+            echo "new_tag=${{ steps.chart.outputs.current_version }}" >> $GITHUB_OUTPUT
+            echo "version_type=auto" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate manual version format
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          # Basic semver validation
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.]+)?(\+[a-zA-Z0-9\.]+)?$ ]]; then
+            echo "Error: Version '$VERSION' is not a valid semantic version"
+            exit 1
+          fi
 
       - name: Update Chart.yaml version
         run: |
@@ -61,14 +84,18 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./packaged
           destination_dir: ./
-          keep_files: true # Wichtig: Alte Dateien nicht löschen
+          keep_files: true
 
       - name: Create Git tag
+        if: steps.version.outputs.version_type == 'manual'
         run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
           git tag ${{ steps.version.outputs.new_tag }}
           git push origin ${{ steps.version.outputs.new_tag }}
 
       - name: Create GitHub Release
+        if: steps.version.outputs.version_type == 'manual'
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.version.outputs.new_tag }}
@@ -76,3 +103,9 @@ jobs:
             ./packaged/*.tgz
             ./packaged/index.yaml
           generate_release_notes: true
+
+      - name: Output info for auto version
+        if: steps.version.outputs.version_type == 'auto'
+        run: |
+          echo "Auto-versioning completed. Chart version ${{ steps.version.outputs.new_tag }} has been published to the repository."
+          echo "No Git tag or GitHub Release created for auto versions."
