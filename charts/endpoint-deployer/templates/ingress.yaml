@@ -21,7 +21,7 @@ spec:
               service:
                 name: {{ include "helm-chart.fullname" . }}
                 port:
-                  number: {{ .Values.service.port }}
+                  number: 80
   tls:
     - hosts:
        - {{.Values.ingress.host }}
