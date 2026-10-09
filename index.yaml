@@ -2,6 +2,17 @@ apiVersion: v1
 entries:
   endpoint-deployer:
   - apiVersion: v2
+    appVersion: 1.2.0
+    created: "2026-10-09T13:56:25.416656141Z"
+    description: A simple Helm chart designed to deploy an ingress for services outside
+      of Kubernetes.
+    digest: 1b7192de9dcab2b02d13d0025403f278b2e256ef8b952762589b3a2b7b9e038b
+    name: endpoint-deployer
+    type: application
+    urls:
+    - https://Sony2k20.github.io/endpoint-deployer-helm/endpoint-deployer-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
     appVersion: 1.1.0
     created: "2026-10-09T13:37:08.536943684Z"
     description: A simple Helm chart designed to deploy an ingress for services outside
@@ -67,4 +78,4 @@ entries:
     urls:
     - https://Sony2k20.github.io/endpoint-deployer-helm/endpoint-deployer-0.0.5.tgz
     version: 0.0.5
-generated: "2026-10-09T13:37:08.536607235Z"
+generated: "2026-10-09T13:56:25.416271041Z"
