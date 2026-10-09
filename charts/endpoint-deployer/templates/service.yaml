@@ -5,7 +5,6 @@ metadata:
   labels:
     {{- include "helm-chart.labels" . | nindent 4 }}
 spec:
-spec:
   ports:
   - port: 80
     targetPort: {{ .Values.service.port }}
