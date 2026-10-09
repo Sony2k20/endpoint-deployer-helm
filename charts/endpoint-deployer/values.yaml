@@ -30,3 +30,8 @@ ingressRoute:
       namespace: kube-system
   tls:
     secretName: csnguyen-tls
+  # Set to "https" for backends that only speak TLS (e.g. self-signed admin UIs).
+  scheme: ""
+  # Only used when scheme is "https": skip TLS verification of the backend's
+  # (likely self-signed) certificate via a generated ServersTransport.
+  insecureSkipVerify: false

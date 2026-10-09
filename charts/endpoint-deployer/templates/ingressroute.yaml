@@ -14,6 +14,12 @@ spec:
       services:
         - name: {{ include "helm-chart.fullname" . }}
           port: 80
+          {{- with .Values.ingressRoute.scheme }}
+          scheme: {{ . }}
+          {{- end }}
+          {{- if and (eq .Values.ingressRoute.scheme "https") .Values.ingressRoute.insecureSkipVerify }}
+          serversTransport: {{ include "helm-chart.fullname" . }}-insecure
+          {{- end }}
       {{- with .Values.ingressRoute.middlewares }}
       middlewares:
         {{- toYaml . | nindent 8 }}
